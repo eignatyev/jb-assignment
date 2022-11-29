@@ -1,0 +1,15 @@
+{
+  "name": "jb-assignment",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:eignatyev/jb-assignment.git",
+  "author": "Egor Ignatyev <egoriggy@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@testing-library/react": "^13.4.0"
+  },
+  "dependencies": {
+    "@rescui/select": "^0.3.2",
+    "@rescui/ui-contexts": "^0.3.5"
+  }
+}
