@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "baseUrl": "__tests__",
+        "declaration": true,
+        "esModuleInterop": true,
+        "jsx": "react",
+        "lib": ["es2022", "ES2018.Promise", "DOM"],
+        "module": "es2022",
+        "moduleResolution": "node",
+        "outDir": "bin",
+        "removeComments": true,
+        "sourceMap": false,
+        "strict": true,
+        "target": "es2022",
+        "typeRoots": ["./node_modules/@types"],
+        "types": ["jest", "node"],
+        "watch": false
+    },
+    "include": ["__tests__/**/*.tsx"],
+    "files": ["node_modules/jest-expect-message/types/index.d.ts"]
+}
