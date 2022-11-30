@@ -1,45 +1,100 @@
 import { SelectOptionOrGroup } from '@rescui/select/lib/types';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
+import { ensureElementExists } from '../ensureElementExists';
 
 interface AssertionResult {
     value: boolean;
     message: string;
 }
 
-export const multiselect = {
+class Multiselect {
     // Page objects
 
-    getContainer: async () => screen.findByTestId('select-wrapper'),
-    getActiveTags: async () => screen.findAllByTestId('removable-tag'),
-    getDropdownIcon: async () => screen.findByTestId('down-icon'),
+    public get container() {
+        return screen.queryByTestId('select-wrapper');
+    }
+
+    public get inputField() {
+        return screen.queryByTestId('select');
+    }
+
+    public get allTags() {
+        return within(ensureElementExists(this.inputField)).queryAllByTestId(
+            'removable-tag'
+        );
+    }
+
+    public get dropdownIcon() {
+        return screen.queryByTestId('down-icon');
+    }
+
+    public get dropdownContainer() {
+        return screen.queryByTestId('dropdown');
+    }
+
+    public getDropdownOption(text: string) {
+        return within(ensureElementExists(this.dropdownContainer)).queryByText(
+            text
+        );
+    }
+
+    public getTag(label: string) {
+        return within(ensureElementExists(this.inputField)).queryByText(label);
+    }
 
     // Step objects
 
-    compareTags: function ({
+    public openDropdown() {
+        fireEvent.click(ensureElementExists(this.dropdownIcon));
+    }
+
+    public addTags(tagLabels: string[]) {
+        tagLabels.forEach((label) => {
+            const tag = ensureElementExists(this.getDropdownOption(label));
+            fireEvent.click(tag);
+        });
+    }
+
+    public async removeTags(tagLabels: string[]) {
+        tagLabels.forEach(async (label) => {
+            const tag = ensureElementExists(this.getTag(label));
+            const closeButton = await within(tag).findByTestId(
+                'removable-tag-remove-icon'
+            );
+            fireEvent.click(closeButton);
+        });
+    }
+
+    // Comparison helpers
+
+    public compareTags({
         activeTags,
-        expectedOptions
+        expectedTags
     }: {
         activeTags: HTMLElement[];
-        expectedOptions: SelectOptionOrGroup[];
+        expectedTags: SelectOptionOrGroup[];
     }): AssertionResult {
-        return activeTags.reduce(
-            (
-                { value, message }: AssertionResult,
-                { textContent: tagText }: HTMLElement,
-                i: number
-            ): AssertionResult => {
-                const expectedText = expectedOptions[i].label;
-                if (tagText === expectedText) {
-                    return { value, message };
-                }
-                const failedAssertionMessage = `tag [${i}] has unexpected text: expected "${expectedText}", but found "${tagText}" `;
+        const presentLabels = activeTags.map((tag) => tag.textContent ?? '');
+        const expectedLabels = expectedTags.map((tag) => tag.label as string);
 
-                return {
-                    value: false,
-                    message: `${message}\n${failedAssertionMessage}`
-                };
-            },
-            { value: true, message: '' }
+        const unexpectedTags = presentLabels.filter(
+            (label) => !expectedLabels.includes(label)
         );
+        const missingTags = expectedLabels.filter(
+            (label) => !presentLabels.includes(label)
+        );
+
+        const message = unexpectedTags
+            .map((tag): string => `unexpected tag is present: ${tag}`)
+            .concat(
+                missingTags.map(
+                    (tag): string => `expected tag is missing: ${tag}`
+                )
+            )
+            .join('\n');
+
+        return { value: message.length === 0, message };
     }
-};
+}
+
+export const multiselect = new Multiselect();
